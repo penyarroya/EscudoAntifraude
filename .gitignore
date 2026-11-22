@@ -1,0 +1,38 @@
+# 1. Archivos de compilación y salidas binarias (Raíz y todos los submódulos)
+build/
+**/build/
+*.apk
+*.aab
+*.ap_
+*.dex
+/app/release/
+/captures/
+
+# 2. Claves privadas, certificados de firma y variables de entorno
+local.properties
+*.jks
+*.keystore
+clv.txt
+.env
+.env.*
+*google-services.json
+
+# 3. Archivos temporales de Gradle y NDK
+.gradle/
+.externalNativeBuild/
+.cxx/
+
+# 4. Configuración local del IDE (Android Studio / IntelliJ)
+*.iml
+/.idea/caches
+/.idea/libraries
+/.idea/modules.xml
+/.idea/workspace.xml
+/.idea/navEditor.xml
+/.idea/assetWizardSettings.xml
+/.idea/deploymentTargetSelector.xml
+
+# 5. Archivos del Sistema Operativo (Windows / macOS)
+.DS_Store
+Thumbs.db
+Desktop.ini

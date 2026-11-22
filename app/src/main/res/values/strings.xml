@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">EscudoAntifraude</string>
+    <string name="escudo_antifraude">Escudo Antifraude</string>
+    <string name="familiar">Familiar</string>
+    <string name="pulsa_aqu_y_pega_el_texto_del_sms_o_whatsapp">Pulsa aquí y pega el texto del SMS o WhatsApp...</string>
+    <string name="analizando_si_es_seguro_nespera_un_segundo">Analizando si es seguro...\nEspera un segundo</string>
+</resources>
