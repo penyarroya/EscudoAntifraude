@@ -93,13 +93,16 @@ El proyecto abandona el enfoque monolítico tradicional (`app`-único) en favor 
 
 | Vector de Amenaza / Riesgo | Mitigación Implementada | Capa / Módulo |
 | :--- | :--- | :--- |
-| **Pulsación accidental de enlaces maliciosos (*Phishing/Smishing*)** | **Doble barrera *Zero-Click*:** Reemplazo léxico mediante regex `(https?://\|www\.)\S+` por `[ENLACE BLOQUEADO POR SEGURIDAD]` antes de renderizar + `android:autoLink="none"` y `android:linksClickable="false"` en vistas XML. | `:app` (`EscuchaNotificacionesService`, `activity_main.xml`) |
-| **Fuga o retención de datos personales sensibles** | **Arquitectura *Zero-Retention*:** Ausencia total de *backend* propio, logs remotos o analíticas de terceros. Los datos viven exclusivamente en variables locales de memoria volátil durante el ciclo de petición HTTP. | Global (`:scanner`, `:analyzer`) |
-| **Bloqueo de instalación por Google Play Protect** | **Principio de Menor Privilegio:** Único permiso declarado: `android.permission.INTERNET`. Eliminación deliberada de `BIND_NOTIFICATION_LISTENER_SERVICE`, `READ_CALL_LOG` y `READ_MEDIA_IMAGES`, sustituidos por `ClipboardManager`, `ACTION_SEND` y `GetContent`. | `:app` (`AndroidManifest.xml`) |
-| **Falsos positivos por desfase temporal del LLM** | **Anclaje Temporal Dinámico:** Inyección de la fecha real del reloj del dispositivo en formato español (`dd 'de' MMMM 'de' yyyy`) dentro del contexto de cada inferencia. | `:analyzer` (`AnalizadorFraude.kt`) |
-| **Agotamiento de memoria (`OOM`) con fotos de alta resolución** | **Submuestreo en dos pasadas:** Cálculo de `inSampleSize` antes de decodificar el mapa de bits y compresión JPEG acotada a `1024px`. | `:scanner` (`ProcesadorImagen.kt`) |
+| **Pulsación accidental de enlaces maliciosos (*Phishing/Smishing*)** | **Doble barrera sin clics (*Zero-Click*):** Reemplazo léxico mediante expresión regular `(https?://\|www\.)\S+` por `[ENLACE BLOQUEADO POR SEGURIDAD]` antes de mostrar el texto + desactivación de hipervínculos (`android:autoLink="none"` y `android:linksClickable="false"`) en las vistas XML. | `:app` (`EscuchaNotificacionesService`, `activity_main.xml`) |
+| **Fuga o retención de datos personales sensibles** | **Arquitectura sin retención (*Zero-Retention*):** Ausencia total de servidor propio, registros remotos o analíticas de terceros. Los datos viven exclusivamente en variables locales de memoria volátil durante la petición HTTP. | Global (`:scanner`, `:analyzer`) |
+| **Bloqueo de instalación por Google Play Protect** | **Principio de Menor Privilegio:** Único permiso declarado: `android.permission.INTERNET`. Eliminación deliberada de escucha de notificaciones en segundo plano, lectura de registro de llamadas (`READ_CALL_LOG`) y lectura de galería, sustituidos por portapapeles, menú Compartir, selector de documentos y apertura segura del historial nativo (`ACTION_VIEW`). | `:app` (`AndroidManifest.xml`, `MainActivity.kt`) |
+| **Falsos positivos por desfase temporal del modelo de IA** | **Anclaje Temporal Dinámico:** Inyección de la fecha real del reloj del dispositivo en formato español (`dd 'de' MMMM 'de' yyyy`) dentro del contexto de cada análisis. | `:analyzer` (`AnalizadorFraude.kt`) |
+| **Agotamiento de memoria (`OOM`) con fotos de alta resolución** | **Submuestreo en dos pasadas:** Cálculo dinámico de `inSampleSize` antes de decodificar la imagen y compresión JPEG acotada a `1024px`. | `:scanner` (`ProcesadorImagen.kt`) |
 | **Alucinación o respuesta no estructurada de la IA** | **Validación Defensiva JSON:** Limpieza de delimitadores Markdown y captura de excepciones con degradación controlada a estado `AMARILLO` (*Precaución*). | `:analyzer` (`AnalizadorFraude.kt`) |
+| **Exposición de claves API en repositorio público** | **Gestión Segura de Secretos en Compilación:** Clave almacenada exclusivamente en `local.properties` (ignorado por Git) e inyectada en tiempo de compilación mediante `resValue` (`buildFeatures.resValues = true` en AGP 9.5+). | Global (`app/build.gradle.kts`, `local.properties`) |
 ---
+
+
 
 ## 5. Cumplimiento de Políticas Android y Configuración de Build
 
@@ -110,11 +113,12 @@ Para cumplir con las restricciones de privacidad de visibilidad de aplicaciones 
 
 ### 5.2. Especificaciones de Compilación (`Gradle Kotlin DSL`)
 * **Identificador de Aplicación:** `es.jlrn.escudoantifraude`
-* **Rango de Compatibilidad:** `minSdk = 24` (Android 7.0 Nougat, cobertura > 97 % del parque activo) hasta `targetSdk = 35` (Android 15 estable).
-* **Versionado de Producción:** `versionCode = 8` | `versionName = "2.2"`.
-* **Java / Kotlin Bytecode Target:** JVM `VERSION_11`.
+* **Entorno de Compilación y Compatibilidad:** Android Gradle Plugin `9.5` | `compileSdk = 37` | `minSdk = 24` (Android 7.0 Nougat, cobertura > 97 % del parque activo) | `targetSdk = 35` (Android 15 estable).
+* **Versionado de Producción:** `versionCode = 9` | `versionName = "2.3"`.
+* **Inyección Segura de Credenciales (`resValue`):** Activación de `buildFeatures { resValues = true }` para leer la variable `GEMINI_API_KEY` desde `local.properties` (ignorado en Git) y generarla en tiempo de compilación como recurso de cadena `R.string.gemini_api_key` sin exponer secretos en el código fuente.
+* **Destino del Código de Bytes (Java / Kotlin):** JVM `VERSION_11`.
 * **Gestión de Ofuscación (`R8`):** Desactivada explícitamente en `buildTypes.release` (`optimization { enable = false }`) para garantizar la integridad de reflexión en serialización JSON y llamadas `OkHttp` sin sobrecarga de mantenimiento de reglas ProGuard.
-* **Política de Firma:** Certificado X.509 propio (`JKS`) persistente entre versiones, garantizando actualizaciones directas (*in-place updates*) con conservación íntegra de `SharedPreferences` (contacto de confianza y preferencia de silencio).
+* **Política de Firma:** Certificado X.509 propio (`JKS`) persistente entre versiones, garantizando actualizaciones directas en el dispositivo con conservación íntegra de `SharedPreferences` (contacto de confianza y preferencia de silencio).
 
 ---
 

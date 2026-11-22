@@ -44,6 +44,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var btnPegarYComprobar: Button
 
     private var ultimoResultado: ResultadoSemaforo? = null
+    private var ultimoNumeroAnalizado: String = ""
 
     private val seleccionarImagenLauncher = registerForActivityResult(
         ActivityResultContracts.GetContent()
@@ -291,43 +292,102 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun mostrarDialogoComprobarLlamada() {
-        val fondoCaja = android.graphics.drawable.GradientDrawable().apply {
-            setColor(Color.parseColor("#F8FAFC"))
-            setStroke(3, Color.parseColor("#CBD5E1"))
-            cornerRadius = 24f
-        }
+        fun crearFondo(colorFondo: String, colorBorde: String, radio: Float = 28f) =
+            android.graphics.drawable.GradientDrawable().apply {
+                setColor(Color.parseColor(colorFondo))
+                setStroke(3, Color.parseColor(colorBorde))
+                cornerRadius = radio
+            }
 
-        val layout = LinearLayout(this).apply {
+        val layoutPrincipal = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            setPadding(48, 28, 48, 12)
+            setBackgroundColor(Color.parseColor("#F5F7FA"))
+            setPadding(44, 36, 44, 36)
         }
 
+        // 1. Cabecera limpia
+        val tvTitulo = TextView(this).apply {
+            text = "📞 Escudo de Llamadas"
+            textSize = 22f
+            setTypeface(null, android.graphics.Typeface.BOLD)
+            setTextColor(Color.parseColor("#102A43"))
+            setPadding(0, 0, 0, 20)
+        }
+
+        // 2. Tarjeta de Regla de Oro
         val tvReglaOro = TextView(this).apply {
             text = "⚠️ REGLA DE ORO: Si dicen ser tu banco, luz/teléfono o un familiar pidiendo dinero urgente: CUELGA SIEMPRE."
             textSize = 15f
+            setTypeface(null, android.graphics.Typeface.BOLD)
             setTextColor(Color.parseColor("#991B1B"))
-            setBackgroundColor(Color.parseColor("#FEE2E2"))
-            setPadding(24, 20, 24, 20)
+            background = crearFondo("#FEF2F2", "#FECACA", 24f)
+            setPadding(28, 22, 28, 22)
         }
 
+        var fueAlHistorial = false
+
+        // 3. Botón estilizado para ir al historial nativo
+        val btnVerHistorial = Button(this).apply {
+            text = "📲 VER MIS ÚLTIMAS LLAMADAS"
+            textSize = 15f
+            setTypeface(null, android.graphics.Typeface.BOLD)
+            setTextColor(Color.parseColor("#0052CC"))
+            background = crearFondo("#EFF6FF", "#93C5FD", 24f)
+            setPadding(24, 24, 24, 24)
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply {
+                topMargin = 24
+                bottomMargin = 24
+            }
+            setOnClickListener {
+                fueAlHistorial = true
+                try {
+                    startActivity(Intent(Intent.ACTION_VIEW, android.provider.CallLog.Calls.CONTENT_URI))
+                } catch (e: Exception) {
+                    startActivity(Intent(Intent.ACTION_DIAL))
+                }
+            }
+        }
+
+        // 4. Fila del número con botones Limpiar (✕) y Pegar (📋) a juego
         val filaNumero = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = android.view.Gravity.CENTER_VERTICAL
-            setPadding(0, 28, 0, 16)
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply { bottomMargin = 20 }
         }
 
         val inputTelefono = EditText(this).apply {
             hint = "Número (ej: +212600...)"
             textSize = 17f
-            background = fondoCaja
-            setPadding(28, 24, 28, 24)
+            setTextColor(Color.parseColor("#102A43"))
+            setHintTextColor(Color.parseColor("#829AB1"))
+            background = crearFondo("#FFFFFF", "#CBD5E1", 24f)
+            setPadding(28, 26, 28, 26)
             inputType = android.text.InputType.TYPE_CLASS_TEXT
             layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
         }
 
+        val btnLimpiarNum = Button(this).apply {
+            text = "✕"
+            textSize = 16f
+            setTypeface(null, android.graphics.Typeface.BOLD)
+            setTextColor(Color.parseColor("#C62828"))
+            background = crearFondo("#FEE2E2", "#FCA5A5", 24f)
+            layoutParams = LinearLayout.LayoutParams(115, 115).apply { leftMargin = 12 }
+            setOnClickListener { inputTelefono.setText("") }
+        }
+
         val btnPegarNum = Button(this).apply {
-            text = "📋 Pegar"
-            textSize = 14f
+            text = "📋"
+            textSize = 16f
+            setTextColor(Color.parseColor("#FFFFFF"))
+            background = crearFondo("#0F766E", "#0F766E", 24f)
+            layoutParams = LinearLayout.LayoutParams(115, 115).apply { leftMargin = 12 }
             setOnClickListener {
                 val clip = (getSystemService(CLIPBOARD_SERVICE) as android.content.ClipboardManager)
                     .primaryClip?.getItemAt(0)?.coerceToText(this@MainActivity)?.toString()?.trim() ?: ""
@@ -340,31 +400,61 @@ class MainActivity : AppCompatActivity() {
         }
 
         filaNumero.addView(inputTelefono)
+        filaNumero.addView(btnLimpiarNum)
         filaNumero.addView(btnPegarNum)
 
+        // 5. Campo opcional para el motivo de la llamada
         val inputMotivo = EditText(this).apply {
             hint = "¿Qué te han dicho? (Opcional: ej. subida de luz, falso banco...)"
             textSize = 16f
-            background = fondoCaja.constantState?.newDrawable()?.mutate()
-            setPadding(28, 24, 28, 24)
+            setTextColor(Color.parseColor("#102A43"))
+            setHintTextColor(Color.parseColor("#829AB1"))
+            background = crearFondo("#FFFFFF", "#CBD5E1", 24f)
+            setPadding(28, 26, 28, 26)
             inputType = android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_FLAG_MULTI_LINE
             minLines = 2
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply { bottomMargin = 28 }
         }
 
-        layout.addView(tvReglaOro)
-        layout.addView(filaNumero)
-        layout.addView(inputMotivo)
+        // 6. Fila inferior de botones grandes alineados (Cerrar y Analizar)
+        val filaAcciones = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = android.view.Gravity.CENTER_VERTICAL
+        }
 
-        AlertDialog.Builder(this)
-            .setTitle("📞 Comprobar Llamada")
-            .setView(layout)
-            .setPositiveButton("Analizar") { _, _ ->
+        val dialogo = AlertDialog.Builder(this)
+            .setView(layoutPrincipal)
+            .create()
+
+        val btnCerrarDialogo = Button(this).apply {
+            text = "CERRAR"
+            textSize = 15f
+            setTypeface(null, android.graphics.Typeface.BOLD)
+            setTextColor(Color.parseColor("#334E68"))
+            background = crearFondo("#E2E8F0", "#CBD5E1", 24f)
+            layoutParams = LinearLayout.LayoutParams(0, 125, 1f).apply { rightMargin = 14 }
+            setOnClickListener { dialogo.dismiss() }
+        }
+
+        val btnAnalizarLlamada = Button(this).apply {
+            text = "ANALIZAR"
+            textSize = 16f
+            setTypeface(null, android.graphics.Typeface.BOLD)
+            setTextColor(Color.parseColor("#FFFFFF"))
+            background = crearFondo("#102A43", "#102A43", 24f)
+            layoutParams = LinearLayout.LayoutParams(0, 125, 1.4f)
+            setOnClickListener {
                 val numero = inputTelefono.text.toString().trim()
                 val motivo = inputMotivo.text.toString().trim()
 
                 if (numero.isEmpty() && motivo.isEmpty()) {
-                    Toast.makeText(this, "Escribe el número o lo que te han dicho", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@MainActivity, "Escribe el número o lo que te han dicho", Toast.LENGTH_SHORT).show()
                 } else {
+                    if (numero.isNotEmpty()) ultimoNumeroAnalizado = numero
+
                     val resumenPantalla = buildString {
                         if (numero.isNotEmpty()) append("Llamada del número: $numero\n")
                         if (motivo.isNotEmpty()) append("Motivo: $motivo")
@@ -379,46 +469,187 @@ class MainActivity : AppCompatActivity() {
                         Analiza el prefijo (internacional de riesgo, tarificación especial 807/902/118 o estándar) y el motivo (falsa operadora, falso banco, falso soporte técnico o familiar en apuros).
                     """.trimIndent()
 
+                    dialogo.dismiss()
                     analizarContenido(textoSospechoso = consultaLlamada, imagenBase64 = null)
                 }
             }
-            .setNegativeButton("Cerrar", null)
-            .show()
-    }
+        }
 
+        filaAcciones.addView(btnCerrarDialogo)
+        filaAcciones.addView(btnAnalizarLlamada)
+
+        layoutPrincipal.addView(tvTitulo)
+        layoutPrincipal.addView(tvReglaOro)
+        layoutPrincipal.addView(btnVerHistorial)
+        layoutPrincipal.addView(filaNumero)
+        layoutPrincipal.addView(inputMotivo)
+        layoutPrincipal.addView(filaAcciones)
+
+        // Rellena automáticamente solo si el usuario vuelve de ver sus llamadas con un número nuevo
+        dialogo.setOnShowListener {
+            dialogo.window?.setBackgroundDrawable(crearFondo("#F5F7FA", "#CBD5E1", 36f))
+            dialogo.window?.decorView?.viewTreeObserver?.addOnWindowFocusChangeListener { hasFocus ->
+                if (hasFocus && fueAlHistorial) {
+                    fueAlHistorial = false
+                    val clip = (getSystemService(CLIPBOARD_SERVICE) as android.content.ClipboardManager)
+                        .primaryClip?.getItemAt(0)?.coerceToText(this)?.toString()?.trim() ?: ""
+                    if (clip.matches(Regex("^[+0-9\\s()-]{5,20}$")) && clip != ultimoNumeroAnalizado) {
+                        inputTelefono.setText(clip)
+                    }
+                }
+            }
+        }
+
+        dialogo.show()
+    }
     private fun mostrarDialogoFamiliar() {
-        val layout = LinearLayout(this).apply {
+        fun crearFondo(colorFondo: String, colorBorde: String, radio: Float = 28f) =
+            android.graphics.drawable.GradientDrawable().apply {
+                setColor(Color.parseColor(colorFondo))
+                setStroke(3, Color.parseColor(colorBorde))
+                cornerRadius = radio
+            }
+
+        val layoutPrincipal = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            setPadding(50, 30, 50, 10)
+            setBackgroundColor(Color.parseColor("#F5F7FA"))
+            setPadding(44, 36, 44, 36)
+        }
+
+        // 1. Título limpio a juego con la app
+        val tvTitulo = TextView(this).apply {
+            text = "👤 Persona de confianza"
+            textSize = 22f
+            setTypeface(null, android.graphics.Typeface.BOLD)
+            setTextColor(Color.parseColor("#102A43"))
+            setPadding(0, 0, 0, 18)
+        }
+
+        // 2. Tarjeta explicativa en verde suave (a juego con WhatsApp)
+        val tvInfo = TextView(this).apply {
+            text = "💬 Si recibes una estafa, podrás pedirle ayuda por WhatsApp con un solo toque."
+            textSize = 15f
+            setTextColor(Color.parseColor("#065F46"))
+            background = crearFondo("#ECFDF5", "#A7F3D0", 24f)
+            setPadding(28, 22, 28, 22)
+        }
+
+        // 3. Etiqueta y campo Nombre
+        val tvLabelNombre = TextView(this).apply {
+            text = "Nombre del familiar o amigo:"
+            textSize = 15f
+            setTypeface(null, android.graphics.Typeface.BOLD)
+            setTextColor(Color.parseColor("#334E68"))
+            setPadding(4, 24, 0, 8)
         }
 
         val inputNombre = EditText(this).apply {
-            hint = "Nombre (ej. Hijo, Marta)"
+            hint = "Ej: Hijo, Marta..."
             setText(gestorAlertas.obtenerNombreConfianza())
             textSize = 18f
+            setTextColor(Color.parseColor("#102A43"))
+            setHintTextColor(Color.parseColor("#829AB1"))
+            background = crearFondo("#FFFFFF", "#CBD5E1", 24f)
+            setPadding(28, 24, 28, 24)
+            inputType = android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_FLAG_CAP_WORDS
         }
+
+        // 4. Etiqueta y campo Teléfono con botón de borrado rápido (✕)
+        val tvLabelTelefono = TextView(this).apply {
+            text = "Teléfono móvil con WhatsApp:"
+            textSize = 15f
+            setTypeface(null, android.graphics.Typeface.BOLD)
+            setTextColor(Color.parseColor("#334E68"))
+            setPadding(4, 22, 0, 8)
+        }
+
+        val filaTelefono = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = android.view.Gravity.CENTER_VERTICAL
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply { bottomMargin = 30 }
+        }
+
         val inputTelefono = EditText(this).apply {
-            hint = "Teléfono móvil (ej. 612345678)"
+            hint = "Ej: 612345678"
             setText(gestorAlertas.obtenerTelefonoConfianza().removePrefix("34"))
             textSize = 18f
+            setTextColor(Color.parseColor("#102A43"))
+            setHintTextColor(Color.parseColor("#829AB1"))
+            background = crearFondo("#FFFFFF", "#CBD5E1", 24f)
+            setPadding(28, 24, 28, 24)
+            inputType = android.text.InputType.TYPE_CLASS_TEXT
+            layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
         }
 
-        layout.addView(inputNombre)
-        layout.addView(inputTelefono)
+        val btnLimpiarTel = Button(this).apply {
+            text = "✕"
+            textSize = 16f
+            setTypeface(null, android.graphics.Typeface.BOLD)
+            setTextColor(Color.parseColor("#C62828"))
+            background = crearFondo("#FEE2E2", "#FCA5A5", 24f)
+            layoutParams = LinearLayout.LayoutParams(115, 115).apply { leftMargin = 12 }
+            setOnClickListener { inputTelefono.setText("") }
+        }
 
-        AlertDialog.Builder(this)
-            .setTitle("Persona de confianza")
-            .setMessage("Si recibes una estafa, podrás avisarle por WhatsApp con un solo toque.")
-            .setView(layout)
-            .setPositiveButton("Guardar") { _, _ ->
+        filaTelefono.addView(inputTelefono)
+        filaTelefono.addView(btnLimpiarTel)
+
+        // 5. Botones inferiores grandes (Cancelar y Guardar)
+        val filaBotones = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = android.view.Gravity.CENTER_VERTICAL
+        }
+
+        val dialogo = AlertDialog.Builder(this)
+            .setView(layoutPrincipal)
+            .create()
+
+        val btnCancelar = Button(this).apply {
+            text = "CANCELAR"
+            textSize = 15f
+            setTypeface(null, android.graphics.Typeface.BOLD)
+            setTextColor(Color.parseColor("#334E68"))
+            background = crearFondo("#E2E8F0", "#CBD5E1", 24f)
+            layoutParams = LinearLayout.LayoutParams(0, 125, 1f).apply { rightMargin = 14 }
+            setOnClickListener { dialogo.dismiss() }
+        }
+
+        val btnGuardar = Button(this).apply {
+            text = "GUARDAR"
+            textSize = 16f
+            setTypeface(null, android.graphics.Typeface.BOLD)
+            setTextColor(Color.parseColor("#FFFFFF"))
+            background = crearFondo("#102A43", "#102A43", 24f)
+            layoutParams = LinearLayout.LayoutParams(0, 125, 1.4f)
+            setOnClickListener {
                 gestorAlertas.guardarContactoConfianza(
                     inputNombre.text.toString(),
                     inputTelefono.text.toString()
                 )
-                Toast.makeText(this, "Contacto guardado correctamente", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@MainActivity, "Contacto guardado correctamente", Toast.LENGTH_SHORT).show()
+                dialogo.dismiss()
             }
-            .setNegativeButton("Cancelar", null)
-            .show()
+        }
+
+        filaBotones.addView(btnCancelar)
+        filaBotones.addView(btnGuardar)
+
+        layoutPrincipal.addView(tvTitulo)
+        layoutPrincipal.addView(tvInfo)
+        layoutPrincipal.addView(tvLabelNombre)
+        layoutPrincipal.addView(inputNombre)
+        layoutPrincipal.addView(tvLabelTelefono)
+        layoutPrincipal.addView(filaTelefono)
+        layoutPrincipal.addView(filaBotones)
+
+        dialogo.setOnShowListener {
+            dialogo.window?.setBackgroundDrawable(crearFondo("#F5F7FA", "#CBD5E1", 36f))
+        }
+
+        dialogo.show()
     }
 
     override fun onDestroy() {

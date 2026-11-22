@@ -40,3 +40,12 @@ Durante las pruebas de campo de la evolución v2.0 se tomaron decisiones técnic
 ## Fase 5: Empaquetado, Firma y Despliegue (v2.2)
 * **Firma Digital:** Generación de certificado X.509 propio (`llave-antifraude.jks`) con soporte de actualizaciones directas (*in-place updates*) entre versiones.
 * **Seguridad del Repositorio:** Exclusión del certificado de firma y sustitución de la clave de API por marcador de posición antes de la publicación del código fuente en GitHub.
+
+---
+
+## Fase 6: Unificación Visual de Diálogos y Acceso Seguro a Últimas Llamadas (v2.3)
+* **Acceso al Historial sin Permisos Restringidos:** Para evitar que el usuario mayor tenga que memorizar o teclear números largos sin activar los bloqueos de Google Play Protect asociados al permiso `READ_CALL_LOG`, se implementó un botón de acceso directo al registro nativo del teléfono (`Intent.ACTION_VIEW` sobre `CallLog.Calls.CONTENT_URI`).
+* **Relleno Automático Inteligente y Limpieza de Estado:** Al regresar desde el historial de llamadas con un número copiado, el diálogo lo rellena automáticamente en el campo de teléfono. Además, se incorporó control de estado (`ultimoNumeroAnalizado`) y un botón de borrado rápido (`✕`) para garantizar que el formulario se abra siempre limpio en cada nueva consulta y no repita números anteriores del portapapeles.
+* **Rediseño Visual de Diálogos:** Se unificó la estética de las ventanas emergentes (**Escudo de Llamadas** y **Persona de Confianza**) mediante tarjetas redondeadas (`GradientDrawable`), paleta de colores coherente con la pantalla principal (`#102A43`, `#0052CC`, `#F5F7FA`) y botones táctiles inferiores de gran tamaño (`CERRAR / ANALIZAR` y `CANCELAR / GUARDAR`).
+* **Versionado:** Actualización del paquete a `versionCode = 9` (`versionName = "2.3"`).
+
