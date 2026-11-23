@@ -56,3 +56,12 @@ Durante las pruebas de campo de la evolución v2.0 se tomaron decisiones técnic
 * **Limpieza Automática del Portapapeles:** Implementación de `limpiarPortapapeles()` sincronizada con el ciclo de foco de ventana (`onWindowFocusChanged`) y al finalizar cada análisis para evitar arrastrar textos o números de consultas anteriores.
 * **Versionado:** Actualización del paquete a `versionCode = 10` (`versionName = "2.4"`).
 
+---
+
+## Fase 8: Endurecimiento de Seguridad Interno y Blindaje de Producción (v2.5)
+* **Protección contra *Prompt Injection* (`:analyzer`):** Aislamiento estructural de la evidencia no confiable mediante delimitadores XML (`<mensaje_sospechoso>`), limpieza de caracteres de control invisibles (`sanitizarEntrada`), neutralización de URLs en las respuestas generadas (`neutralizarSalida`) y matriz universal de evaluación para prefijos telefónicos nacionales, internacionales y de tarificación especial.
+* **Validación Binaria de Archivos y *Anti-Decompression Bomb* (`:scanner`):** Verificación estricta de cabeceras reales (*Magic Bytes* para `JPEG`, `PNG`, `WEBP` y `HEIC`), límite de peso físico (15 MB) y control de dimensiones máximas (`8192 px`) antes de decodificar en memoria RAM.
+* **Verificación de Integridad y Anti-Reempaquetado (`:app`):** Validación criptográfica en tiempo de ejecución de la huella **SHA-256** del certificado oficial de firma (`esApkIntegro()`) y bloqueo de depuradores activos (`Debug.isDebuggerConnected()`) en compilaciones de producción.
+* **Ofuscación R8 y Blindaje de Recursos (`:app`):** Activación de `isMinifyEnabled = true` e `isShrinkResources = true` con reglas `proguard-rules.pro` (eliminación de logs de depuración y protección de `OkHttp`) y `keep.xml` para preservar `R.string.gemini_api_key`.
+* **Versionado:** Actualización del paquete a `versionCode = 11` (`versionName = "2.5"`).
+

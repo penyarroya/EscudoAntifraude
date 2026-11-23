@@ -22,6 +22,9 @@ import es.jlrn.core.LectorVoz
 import es.jlrn.core.ResultadoSemaforo
 import es.jlrn.core.ResultadoSemaforo.NivelRiesgo
 import es.jlrn.scanner.ProcesadorImagen
+import android.content.pm.PackageManager
+import android.os.Debug
+import java.security.MessageDigest
 
 class MainActivity : AppCompatActivity() {
 
@@ -48,6 +51,8 @@ class MainActivity : AppCompatActivity() {
 
     private var limpiezaInicialHecha = false
 
+    private val firmaOficialSha256: String by lazy { getString(R.string.firma_oficial_sha256) }
+
 
     private val seleccionarImagenLauncher = registerForActivityResult(
         ActivityResultContracts.GetContent()
@@ -60,13 +65,38 @@ class MainActivity : AppCompatActivity() {
         ActivityResultContracts.RequestPermission()
     ) { /* Si lo concede, la búsqueda en agenda funcionará automáticamente */ }
 
+//    override fun onCreate(savedInstanceState: Bundle?) {
+//        super.onCreate(savedInstanceState)
+//        setContentView(R.layout.activity_main)
+//
+//        lectorVoz = LectorVoz(this)
+//        procesadorImagen = ProcesadorImagen(this)
+//        analizadorFraude = AnalizadorFraude(apiKeyGemini)
+//        gestorAlertas = GestorAlertas(this)
+//
+//        enlazarVistas()
+//        configurarBotones()
+//        gestionarIntentCompartido(intent)
+//    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Blindaje 3 y 4: Verifica firma auténtica y ausencia de depuradores en producción
+        if (!esApkIntegro()) {
+            Toast.makeText(this, "Error de integridad de la aplicación.", Toast.LENGTH_LONG).show()
+            finishAffinity()
+            return
+        }
+
         setContentView(R.layout.activity_main)
 
         lectorVoz = LectorVoz(this)
         procesadorImagen = ProcesadorImagen(this)
-        analizadorFraude = AnalizadorFraude(apiKeyGemini)
+        analizadorFraude = AnalizadorFraude(
+            apiKey = apiKeyGemini,
+            certSha1 = getString(R.string.firma_oficial_sha1)
+        )
         gestorAlertas = GestorAlertas(this)
 
         enlazarVistas()
@@ -736,4 +766,38 @@ class MainActivity : AppCompatActivity() {
         lectorVoz.liberarRecursos()
         super.onDestroy()
     }
+
+    private fun esApkIntegro(): Boolean {
+        val esDebug = (applicationInfo.flags and android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE) != 0
+        if (esDebug) return true
+
+        if (Debug.isDebuggerConnected() || Debug.waitingForDebugger()) return false
+
+        return try {
+            val packageInfo = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                packageManager.getPackageInfo(packageName, PackageManager.GET_SIGNING_CERTIFICATES)
+            } else {
+                @Suppress("DEPRECATION")
+                packageManager.getPackageInfo(packageName, PackageManager.GET_SIGNATURES)
+            }
+
+            val firmas = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                packageInfo.signingInfo?.apkContentsSigners
+            } else {
+                @Suppress("DEPRECATION")
+                packageInfo.signatures
+            }
+
+            val huellaEsperada = firmaOficialSha256.replace(":", "").replace(" ", "").trim()
+
+            firmas?.any { firma ->
+                val digest = MessageDigest.getInstance("SHA-256").digest(firma.toByteArray())
+                val hashActual = digest.joinToString("") { "%02X".format(it) }
+                hashActual.equals(huellaEsperada, ignoreCase = true)
+            } ?: false
+        } catch (e: Exception) {
+            false
+        }
+    }
+
 }

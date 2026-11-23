@@ -1,4 +1,4 @@
-# 🛡️ Guía de Uso: Escudo Antifraude (v2.4)
+# 🛡️ Guía de Uso: Escudo Antifraude (v2.5)
 
 **Tu ayudante sencillo y por voz para saber si un mensaje, documento o llamada es seguro.**
 
@@ -25,18 +25,18 @@ Si recibes un mensaje raro de un banco, Correos, la DGT o un número desconocido
 1. Haz una **captura de pantalla** del mensaje (o mantén pulsado el texto y elige **Compartir**).
 2. Pulsa el botón de **Compartir** (el icono de los tres puntos unidos por líneas).
 3. Elige el icono de **Escudo Antifraude** en la lista de aplicaciones.
-4. La aplicación se abrirá sola y analizará la imagen o el texto al instante.
+4. La aplicación se abrirá sola, comprobará que el archivo sea seguro y analizará la imagen o el texto al instante.
 
 ### Forma B: Usando una foto o carta (Botón `📷 FOTO`)
 1. Abre **Escudo Antifraude**.
 2. Pulsa el botón azul **"📷 FOTO"**.
-3. Toca sobre la captura de pantalla o foto de la carta en tu galería o carpetas.
+3. Toca sobre la captura de pantalla o foto de la carta en tu galería o carpetas *(la aplicación verifica automáticamente que sea una foto real y segura)*.
 4. Espera unos segundos mientras la aplicación la revisa.
 
 ### Forma C: Copiando y pegando un mensaje (Botón `📋 PEGAR`)
 1. Mantén el dedo pulsado sobre el texto del mensaje sospechoso y pulsa **Copiar**.
 2. Abre **Escudo Antifraude** y pulsa directamente el botón verde **"📋 PEGAR"**.
-3. La aplicación pegará el texto, bloqueará automáticamente cualquier enlace peligroso y lo analizará al instante *(al terminar, borrará el portapapeles por tu seguridad)*.
+3. La aplicación pegará el texto, bloqueará automáticamente cualquier enlace o instrucción trampa y lo analizará al instante *(al terminar, borrará el portapapeles por tu seguridad)*.
 
 ### Forma D: Comprobar una llamada sospechosa (Botón `📞 LLAMADA`)
 Si te acaban de llamar diciendo que son tu banco, tu compañía de luz/teléfono o un familiar con urgencia:
@@ -45,7 +45,7 @@ Si te acaban de llamar diciendo que son tu banco, tu compañía de luz/teléfono
 2. Pulsa el botón rojo **"📞 LLAMADA"**.
 3. Si no recuerdas el número, pulsa **"📲 VER MIS ÚLTIMAS LLAMADAS"**, mantén pulsado el último número recibido para **copiarlo** y vuelve atrás: el número se rellenará solo.
 4. Si quieres, escribe brevemente qué te han dicho y pulsa **"ANALIZAR"**.
-5. La aplicación comprobará **si ese número está en tu agenda de contactos** (avisándote por su nombre) o si es un **número desconocido o peligroso**.
+5. La aplicación comprobará **si ese número está en tu agenda de contactos** (avisándote por su nombre), si es un **prefijo extranjero o de pago peligroso** (como `807`, `902` o números internacionales), o si es un **número desconocido**.
 
 ---
 
@@ -54,13 +54,13 @@ Si te acaban de llamar diciendo que son tu banco, tu compañía de luz/teléfono
 Al terminar el análisis, la pantalla mostrará una tarjeta de color y **leerá el resultado en voz alta con voz pausada**:
 
 * **Color ROJO (Peligro - Es una estafa):**
-  * **Qué significa:** Intentan engañarte para robarte dinero, contraseñas o datos personales.
-  * **Qué hacer:** No pulses ningún enlace, no des ningún dato y borra el mensaje. Pulsa el botón verde **"AVISAR A MI FAMILIAR"** para enviarle un resumen por WhatsApp con un toque.
+  * **Qué significa:** Intentan engañarte para robarte dinero, contraseñas o datos personales, o se trata de un número extranjero/de pago peligroso.
+  * **Qué hacer:** No pulses ningún enlace, no devuelvas la llamada, no des ningún dato y borra el mensaje. Pulsa el botón verde **"AVISAR A MI FAMILIAR"** para enviarle un resumen por WhatsApp con un toque.
 * **Color AMARILLO / NARANJA (Precaución):**
-  * **Qué significa:** Tiene señales sospechosas o mete prisa, pero conviene asegurarse.
+  * **Qué significa:** Es un número desconocido o tiene señales que conviene comprobar antes de fiarse.
   * **Qué hacer:** Antes de hacer nada, llama tú mismo por teléfono a tu banco, organismo oficial o familiar (nunca llames al número que viene dentro del mensaje).
 * **Color VERDE (Parece seguro):**
-  * **Qué significa:** No se han detectado trampas ni enlaces peligrosos.
+  * **Qué significa:** No se han detectado trampas ni enlaces peligrosos, o corresponde a un teléfono oficial de ayuda (como el `017` o el `112`).
   * **Recuerda:** Aunque salga verde, nunca facilites tus claves bancarias ni códigos recibidos por SMS a nadie.
 
 ---
@@ -75,4 +75,5 @@ Al terminar el análisis, la pantalla mostrará una tarjeta de color y **leerá 
 ## 5. Privacidad y Seguridad
 
 * **Tus fotos y mensajes no se guardan:** Se analizan al momento en la memoria del teléfono y se borran automáticamente. Nadie tiene acceso a tus conversaciones privadas.
+* **Protección interna verificada:** La aplicación comprueba su propia integridad al abrirse para garantizar que nadie haya modificado el programa original.
 * **Totalmente gratuita:** La aplicación no tiene publicidad, ni suscripciones, ni compras ocultas.

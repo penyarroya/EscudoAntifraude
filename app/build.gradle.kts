@@ -7,6 +7,8 @@ val localProperties = Properties().apply {
     }
 }
 val geminiApiKey: String = localProperties.getProperty("GEMINI_API_KEY") ?: ""
+val firmaSha256: String = localProperties.getProperty("FIRMA_OFICIAL_SHA256") ?: ""
+val firmaSha1: String = localProperties.getProperty("FIRMA_OFICIAL_SHA1") ?: ""
 
 
 plugins {
@@ -23,10 +25,12 @@ android {
         applicationId = "es.jlrn.escudoantifraude"
         minSdk = 24
         targetSdk = 35
-        versionCode = 10
+        versionCode = 11
         versionName = "2.4"
 
         resValue("string", "gemini_api_key", geminiApiKey)
+        resValue("string", "firma_oficial_sha256", firmaSha256)
+        resValue("string", "firma_oficial_sha1", firmaSha1)
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -35,12 +39,23 @@ android {
         resValues = true
     }
 
+//    buildTypes {
+//        release {
+//            optimization {
+//                enable = false
+//                packageScope = setOf("androidx.**", "kotlin.**", "kotlinx.**")
+//            }
+//        }
+//    }
+
     buildTypes {
         release {
-            optimization {
-                enable = false
-                packageScope = setOf("androidx.**", "kotlin.**", "kotlinx.**")
-            }
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
         }
     }
     compileOptions {
