@@ -23,8 +23,8 @@ android {
         applicationId = "es.jlrn.escudoantifraude"
         minSdk = 24
         targetSdk = 35
-        versionCode = 9
-        versionName = "2.3"
+        versionCode = 10
+        versionName = "2.4"
 
         resValue("string", "gemini_api_key", geminiApiKey)
 

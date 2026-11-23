@@ -1,4 +1,4 @@
-# 🛡️ Escudo Antifraude (v2.3)
+# 🛡️ Escudo Antifraude (v2.4)
 
 Aplicación móvil nativa para Android diseñada para proteger a **personas mayores o con brecha digital** frente a estafas en **SMS, WhatsApp, correos electrónicos, documentos y llamadas telefónicas (*vishing*)** de forma sencilla, visual y por voz.
 
@@ -6,12 +6,12 @@ Desarrollada bajo una **arquitectura Modulith (Monolito Modular)** en Kotlin con
 
 ---
 
-## ✨ Características Principales (v2.3)
+## ✨ Características Principales (v2.4)
 
 * **Barra de 3 Acciones Rápidas:**
   * **📷 FOTO:** Analiza capturas de pantalla, cartas o décimos de lotería mediante el selector de imágenes y carpetas de Android.
-  * **📋 PEGAR:** Lee y analiza el mensaje del portapapeles neutralizando enlaces automáticamente.
-  * **📞 LLAMADA:** Escudo preventivo contra *vishing* con la **Regla de Oro**, acceso directo a **📲 Ver mis últimas llamadas**, relleno automático inteligente al regresar (sin permisos invasivos) y análisis de prefijos y relatos.
+  * **📋 PEGAR:** Lee y analiza el mensaje del portapapeles neutralizando enlaces automáticamente, con **limpieza automática del portapapeles** al iniciar la aplicación y al finalizar cada consulta.
+  * **📞 LLAMADA:** Escudo preventivo contra *vishing* con la **Regla de Oro**, acceso directo a **📲 Ver mis últimas llamadas**, relleno automático inteligente al regresar, **verificación automática en tu agenda de contactos** (avisando por su nombre si es un contacto guardado o si es desconocido) y análisis de prefijos y relatos.
 * **Neutralización Total de Enlaces (*Zero-Click Protection*):** Convierte las URL en texto inofensivo (`[ENLACE BLOQUEADO POR SEGURIDAD]`) y desactiva hipervínculos (`autoLink="none"`).
 * **Control de Contexto Temporal Dinámico:** Inyecta la fecha real del dispositivo en cada consulta a la IA para validar fechas vigentes.
 * **Accesibilidad Visual y Auditiva:**
@@ -26,7 +26,7 @@ Desarrollada bajo una **arquitectura Modulith (Monolito Modular)** en Kotlin con
 
 ```text
 EscudoAntifraude/
-├── :app        # UI accesible, Escudo de Llamadas, Portapapeles, Selector de Fotos e Intent Filters
+├── :app        # UI accesible, Escudo de Llamadas, Agenda, Portapapeles, Selector de Fotos e Intent Filters
 ├── :core       # Modelos de dominio (ResultadoSemaforo) y motor de voz SSML con silencio (LectorVoz)
 ├── :scanner    # Compresión segura de imágenes en RAM (inSampleSize) y codificación Base64
 ├── :analyzer   # Cliente HTTP asíncrono (OkHttp), contexto temporal dinámico e integración Gemini API
@@ -47,8 +47,8 @@ EscudoAntifraude/
 
 ## 🚀 Instalación y Actualización (Usuarios Finales)
 
-1. Descarga **`EscudoAntifraude_v2.3.apk`** desde la sección **Releases** del repositorio.
-2. Ábrelo en tu dispositivo Android (si aparece el aviso preventivo de Google Play Protect por ser una app independiente, selecciona **Más detalles > Instalar de todos modos**). Las actualizaciones conservan los datos guardados de versiones anteriores (`v2.0`, `v2.1` o `v2.2`).
+1. Descarga **`EscudoAntifraude_v2.4.apk`** desde la sección **Releases** del repositorio.
+2. Ábrelo en tu dispositivo Android (si aparece el aviso preventivo de Google Play Protect por ser una app independiente, selecciona **Más detalles > Instalar de todos modos**). Las actualizaciones conservan los datos guardados de versiones anteriores (`v2.0`, `v2.1`, `v2.2` o `v2.3`).
 3. Pulsa en **Familiar** (arriba a la derecha) para registrar el nombre y teléfono de tu contacto de confianza.
 
 ---

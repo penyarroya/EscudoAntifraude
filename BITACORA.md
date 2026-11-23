@@ -49,3 +49,10 @@ Durante las pruebas de campo de la evolución v2.0 se tomaron decisiones técnic
 * **Rediseño Visual de Diálogos:** Se unificó la estética de las ventanas emergentes (**Escudo de Llamadas** y **Persona de Confianza**) mediante tarjetas redondeadas (`GradientDrawable`), paleta de colores coherente con la pantalla principal (`#102A43`, `#0052CC`, `#F5F7FA`) y botones táctiles inferiores de gran tamaño (`CERRAR / ANALIZAR` y `CANCELAR / GUARDAR`).
 * **Versionado:** Actualización del paquete a `versionCode = 9` (`versionName = "2.3"`).
 
+---
+
+## Fase 7: Verificación en Agenda de Contactos y Limpieza de Portapapeles (v2.4)
+* **Detección de Contactos Conocidos (`READ_CONTACTS`):** Integración de búsqueda automática en la agenda del dispositivo mediante `ContactsContract.PhoneLookup`. Si el número llamante está guardado, se informa al usuario por su nombre (manteniendo advertencias preventivas frente a suplantación de identidad o robo de teléfono); si no existe, se analiza como desconocido.
+* **Limpieza Automática del Portapapeles:** Implementación de `limpiarPortapapeles()` sincronizada con el ciclo de foco de ventana (`onWindowFocusChanged`) y al finalizar cada análisis para evitar arrastrar textos o números de consultas anteriores.
+* **Versionado:** Actualización del paquete a `versionCode = 10` (`versionName = "2.4"`).
+

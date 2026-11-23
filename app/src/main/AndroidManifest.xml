@@ -5,6 +5,9 @@
     <!-- 1. Permiso obligatorio para consultar la API gratuita de Gemini -->
     <uses-permission android:name="android.permission.INTERNET" />
 
+    <uses-permission android:name="android.permission.READ_CONTACTS" />
+
+
     <!-- 2. Permite comprobar WhatsApp y abrir el selector universal de imágenes/carpetas -->
     <queries>
         <package android:name="com.whatsapp" />

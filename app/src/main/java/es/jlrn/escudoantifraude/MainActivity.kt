@@ -46,6 +46,9 @@ class MainActivity : AppCompatActivity() {
     private var ultimoResultado: ResultadoSemaforo? = null
     private var ultimoNumeroAnalizado: String = ""
 
+    private var limpiezaInicialHecha = false
+
+
     private val seleccionarImagenLauncher = registerForActivityResult(
         ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
@@ -53,12 +56,15 @@ class MainActivity : AppCompatActivity() {
             procesarYAnalizarImagen(uri)
         }
     }
+    private val permisoContactosLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { /* Si lo concede, la búsqueda en agenda funcionará automáticamente */ }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        lectorVoz = LectorVoz(this, apiKeyGemini)
+        lectorVoz = LectorVoz(this)
         procesadorImagen = ProcesadorImagen(this)
         analizadorFraude = AnalizadorFraude(apiKeyGemini)
         gestorAlertas = GestorAlertas(this)
@@ -73,6 +79,13 @@ class MainActivity : AppCompatActivity() {
         gestionarIntentCompartido(intent)
     }
 
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        if (hasFocus && !limpiezaInicialHecha) {
+            limpiezaInicialHecha = true
+            limpiarPortapapeles()
+        }
+    }
     private fun enlazarVistas() {
         layoutCargando = findViewById(R.id.layoutCargando)
         cardResultado = findViewById(R.id.cardResultado)
@@ -292,6 +305,13 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun mostrarDialogoComprobarLlamada() {
+        if (androidx.core.content.ContextCompat.checkSelfPermission(
+                this, android.Manifest.permission.READ_CONTACTS
+            ) != android.content.pm.PackageManager.PERMISSION_GRANTED
+        ) {
+            permisoContactosLauncher.launch(android.Manifest.permission.READ_CONTACTS)
+        }
+
         fun crearFondo(colorFondo: String, colorBorde: String, radio: Float = 28f) =
             android.graphics.drawable.GradientDrawable().apply {
                 setColor(Color.parseColor(colorFondo))
@@ -455,20 +475,36 @@ class MainActivity : AppCompatActivity() {
                 } else {
                     if (numero.isNotEmpty()) ultimoNumeroAnalizado = numero
 
+                    val nombreContacto = if (numero.isNotEmpty()) buscarNombreEnAgenda(numero) else null
+                    val infoAgenda = when {
+                        numero.isEmpty() -> "No se ha facilitado número."
+                        nombreContacto != null -> "SÍ ESTÁ EN SU AGENDA DE CONTACTOS guardado como: \"$nombreContacto\"."
+                        else -> "NO ESTÁ EN SU AGENDA DE CONTACTOS (es un número desconocido para el usuario)."
+                    }
+
                     val resumenPantalla = buildString {
-                        if (numero.isNotEmpty()) append("Llamada del número: $numero\n")
+                        if (numero.isNotEmpty()) {
+                            append("Llamada del número: $numero")
+                            if (nombreContacto != null) append(" (Contacto: $nombreContacto)")
+                            append("\n")
+                        }
                         if (motivo.isNotEmpty()) append("Motivo: $motivo")
                     }.trim()
 
                     etTextoSospechoso.setText(resumenPantalla)
 
                     val consultaLlamada = """
-                        El usuario en España ha recibido una llamada telefónica sospechosa.
+                        El usuario en España ha recibido una llamada telefónica.
                         Número llamante: "${numero.ifEmpty { "No indicado" }}".
-                        Relato de la llamada: "${motivo.ifEmpty { "No indicado" }}".
-                        Analiza el prefijo (internacional de riesgo, tarificación especial 807/902/118 o estándar) y el motivo (falsa operadora, falso banco, falso soporte técnico o familiar en apuros).
+                        Estado en agenda del teléfono: $infoAgenda
+                        Relato de lo que le han dicho: "${motivo.ifEmpty { "No indicado" }}".
+                        Instrucciones:
+                        1. Indica claramente al principio si el número está guardado en su agenda (y con qué nombre) o si es un número desconocido.
+                        2. Si está en su agenda pero el relato pide dinero urgente, claves o transferencias, advierte que puede ser una suplantación de identidad (spoofing) o teléfono robado.
+                        3. Si es desconocido, analiza el prefijo (internacional de riesgo, tarificación especial 807/902/118 o estándar) y el relato.
                     """.trimIndent()
 
+                    limpiarPortapapeles()
                     dialogo.dismiss()
                     analizarContenido(textoSospechoso = consultaLlamada, imagenBase64 = null)
                 }
@@ -650,6 +686,50 @@ class MainActivity : AppCompatActivity() {
         }
 
         dialogo.show()
+    }
+
+    private fun buscarNombreEnAgenda(numero: String): String? {
+        if (numero.isBlank()) return null
+        if (androidx.core.content.ContextCompat.checkSelfPermission(
+                this,
+                android.Manifest.permission.READ_CONTACTS
+            ) != android.content.pm.PackageManager.PERMISSION_GRANTED
+        ) {
+            return null
+        }
+
+        return try {
+            val uri = android.net.Uri.withAppendedPath(
+                android.provider.ContactsContract.PhoneLookup.CONTENT_FILTER_URI,
+                android.net.Uri.encode(numero)
+            )
+            contentResolver.query(
+                uri,
+                arrayOf(android.provider.ContactsContract.PhoneLookup.DISPLAY_NAME),
+                null,
+                null,
+                null
+            )?.use { cursor ->
+                if (cursor.moveToFirst()) {
+                    cursor.getString(0)
+                } else {
+                    null
+                }
+            }
+        } catch (_: Exception) {
+            null
+        }
+    }
+    private fun limpiarPortapapeles() {
+        try {
+            val clipboard = getSystemService(CLIPBOARD_SERVICE) as android.content.ClipboardManager
+            clipboard.setPrimaryClip(android.content.ClipData.newPlainText("", ""))
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
+                clipboard.clearPrimaryClip()
+            }
+        } catch (_: Exception) {
+            // Ignoramos si el sistema restringe el acceso cuando la ventana no tiene foco
+        }
     }
 
     override fun onDestroy() {
