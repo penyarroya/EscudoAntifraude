@@ -39,15 +39,6 @@ android {
         resValues = true
     }
 
-//    buildTypes {
-//        release {
-//            optimization {
-//                enable = false
-//                packageScope = setOf("androidx.**", "kotlin.**", "kotlinx.**")
-//            }
-//        }
-//    }
-
     buildTypes {
         release {
             isMinifyEnabled = true

@@ -65,3 +65,11 @@ Durante las pruebas de campo de la evolución v2.0 se tomaron decisiones técnic
 * **Ofuscación R8 y Blindaje de Recursos (`:app`):** Activación de `isMinifyEnabled = true` e `isShrinkResources = true` con reglas `proguard-rules.pro` (eliminación de logs de depuración y protección de `OkHttp`) y `keep.xml` para preservar `R.string.gemini_api_key`.
 * **Versionado:** Actualización del paquete a `versionCode = 11` (`versionName = "2.5"`).
 
+---
+
+## Fase 8: Blindaje Multicapa de Seguridad, Ofuscación R8 y Tolerancia Anti-503 (v2.5)
+* **Blindaje Anti-Inyección y Validación de Entrada:** Aislamiento estricto del contenido analizado mediante etiquetas `<mensaje_sospechoso>`, filtrado de caracteres de control invisibles, límite de 4.000 caracteres y bloqueo de esquemas `file://` en archivos compartidos (`content://` exclusivo).
+* **Protección Anti-Reempaquetado y Ofuscación R8:** Verificación en tiempo de ejecución de la firma criptográfica SHA-256 del certificado oficial, bloqueo de copias de seguridad USB (`allowBackup="false"`), tráfico exclusivamente HTTPS (`usesCleartextTraffic="false"`) y activación de ofuscación R8 (`isMinifyEnabled = true`) con eliminación de logs en producción.
+* **Tolerancia a Saturación de Servidores (`Anti-503`):** Implementación de reintentos automáticos con pausa progresiva y cambio automático a modelo de respaldo (`gemini-2.5-flash`) ante respuestas temporales `503` o `429`.
+* **Versionado:** Actualización del paquete a `versionCode = 11` (`versionName = "2.5"`).
+

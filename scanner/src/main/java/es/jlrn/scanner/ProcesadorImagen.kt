@@ -16,16 +16,26 @@ class ProcesadorImagen(private val context: Context) {
      */
 //    fun convertirUriABase64(uriImagen: Uri): String? {
 //        return try {
+//            // 0. Escudo de seguridad: tamaño físico (máx 10 MB) y Magic Bytes reales
+//            if (!esImagenSegura(uriImagen)) return null
+//
 //            // 1. Leemos primero solo las dimensiones de la imagen para no saturar la memoria
 //            val options = BitmapFactory.Options().apply {
 //                inJustDecodeBounds = true
+//
 //            }
+//
 //            context.contentResolver.openInputStream(uriImagen)?.use { stream ->
 //                BitmapFactory.decodeStream(stream, null, options)
 //            }
 //
+//            // Bloqueo de imágenes corruptas o bombas de descompresión (> 8192 px)
+//            if (options.outWidth <= 0 || options.outHeight <= 0 ||
+//                options.outWidth > 8192 || options.outHeight > 8192) {
+//                return null
+//            }
+//
 //            // 2. Calculamos el factor de reducción para que no supere los 1024px de ancho/alto
-//            // (Suficiente para leer cualquier texto de SMS o WhatsApp con total nitidez)
 //            options.inSampleSize = calcularFactorReduccion(options, 1024, 1024)
 //            options.inJustDecodeBounds = false
 //
@@ -52,6 +62,7 @@ class ProcesadorImagen(private val context: Context) {
 //    }
 
     fun convertirUriABase64(uriImagen: Uri): String? {
+        var bitmapReducido: Bitmap? = null
         return try {
             // 0. Escudo de seguridad: tamaño físico (máx 10 MB) y Magic Bytes reales
             if (!esImagenSegura(uriImagen)) return null
@@ -60,6 +71,7 @@ class ProcesadorImagen(private val context: Context) {
             val options = BitmapFactory.Options().apply {
                 inJustDecodeBounds = true
             }
+
             context.contentResolver.openInputStream(uriImagen)?.use { stream ->
                 BitmapFactory.decodeStream(stream, null, options)
             }
@@ -75,24 +87,23 @@ class ProcesadorImagen(private val context: Context) {
             options.inJustDecodeBounds = false
 
             // 3. Decodificamos la imagen ya reducida
-            val bitmapReducido: Bitmap? = context.contentResolver.openInputStream(uriImagen)?.use { stream: InputStream ->
+            bitmapReducido = context.contentResolver.openInputStream(uriImagen)?.use { stream: InputStream ->
                 BitmapFactory.decodeStream(stream, null, options)
             }
 
-            if (bitmapReducido == null) return null
+            val bitmapSeguro = bitmapReducido ?: return null
 
             // 4. Comprimimos a JPEG (calidad 80%) y convertimos a Base64 sin saltos de línea
             val outputStream = ByteArrayOutputStream()
-            bitmapReducido.compress(Bitmap.CompressFormat.JPEG, 80, outputStream)
+            bitmapSeguro.compress(Bitmap.CompressFormat.JPEG, 80, outputStream)
             val bytesImagen = outputStream.toByteArray()
 
-            // Liberamos el bitmap de la memoria RAM inmediatamente
-            bitmapReducido.recycle()
-
             Base64.encodeToString(bytesImagen, Base64.NO_WRAP)
-        } catch (e: Exception) {
-            e.printStackTrace()
+        } catch (_: Exception) {
             null
+        } finally {
+            // Liberamos el bitmap de la memoria RAM siempre, incluso si ocurriera un fallo
+            bitmapReducido?.recycle()
         }
     }
 
